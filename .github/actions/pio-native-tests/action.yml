@@ -1,4 +1,4 @@
-name: PlatformIO Native Tests
+name: PlatformIO native tests
 description: Run native tests for PlatformIO projects. Requires PlatformIO to be installed - run setup-pio first.
 
 inputs:
