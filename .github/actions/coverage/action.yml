@@ -8,6 +8,10 @@ inputs:
     description: gcovr filter to restrict which sources are included in the report.
     required: false
     default: "src/"
+  search-path:
+    description: Directory to search for coverage data files (.gcno/.gcda). Defaults to the project root.
+    required: false
+    default: "."
   fail-under-line:
     description: Fail if the line coverage is below this percentage. Empty disables the check.
     required: false
@@ -42,10 +46,11 @@ runs:
       shell: bash
       env:
         FILTER: ${{ inputs.filter }}
+        SEARCH_PATH: ${{ inputs.search-path }}
         XML_OUTPUT: ${{ inputs.xml-output }}
         FAIL_UNDER: ${{ inputs.fail-under-line }}
       run: |
-        args=(--root . --filter "$FILTER" --xml "$XML_OUTPUT" --print-summary)
+        args=(--root . --filter "$FILTER" --xml "$XML_OUTPUT" --print-summary "$SEARCH_PATH")
         if [ -n "$FAIL_UNDER" ]; then
           args+=(--fail-under-line "$FAIL_UNDER")
         fi
