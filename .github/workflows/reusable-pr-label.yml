@@ -1,3 +1,7 @@
+# Auto-label each PR from its conventional commit title.
+# Accepted types:
+# - feat/fix/docs/chore/ci/refactor
+# - breaking-change for "type!:" or "type(scope)!:" (scope is optional)
 name: PR conventional label
 
 on:
@@ -18,30 +22,25 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
+          # Resolve the target label from the conventional commit title. An empty label
+          # means the title is unrecognized; the PR is then left without a managed label.
           pattern='^([a-zA-Z]+)(\([^)]+\))?(!)?:'
-          if [[ ! "$PR_TITLE" =~ $pattern ]]; then
-            echo "Title is not a conventional commit: '$PR_TITLE'. Skipping."
-            exit 0
-          fi
-
-          type="${BASH_REMATCH[1],,}"
-          breaking="${BASH_REMATCH[3]}"
-
-          if [ -n "$breaking" ]; then
-            label="breaking-change"
-          else
-            case "$type" in
-              feat)     label="feat" ;;
-              fix)      label="fix" ;;
-              docs)     label="docs" ;;
-              refactor) label="refactor" ;;
-              chore)    label="chore" ;;
-              ci)       label="ci" ;;
-              *)
-                echo "Type '$type' is not mapped to a label. Skipping."
-                exit 0
-                ;;
-            esac
+          label=""
+          if [[ "$PR_TITLE" =~ $pattern ]]; then
+            type="${BASH_REMATCH[1],,}"
+            breaking="${BASH_REMATCH[3]}"
+            if [ -n "$breaking" ]; then
+              label="breaking-change"
+            else
+              case "$type" in
+                feat)     label="feat" ;;
+                fix)      label="fix" ;;
+                docs)     label="docs" ;;
+                refactor) label="refactor" ;;
+                chore)    label="chore" ;;
+                ci)       label="ci" ;;
+              esac
+            fi
           fi
 
           managed="breaking-change feat fix docs refactor chore ci"
@@ -66,15 +65,22 @@ jobs:
             ["ci"]="CI/CD maintenance."
           )
 
-          gh label create "$label" --repo "$REPO" \
-            --color "${color[$label]}" \
-            --description "${description[$label]}" >/dev/null 2>&1 || true
-
-          # Remove other managed labels so editing the title re-classifies the PR
+          # Remove every managed label except the target one. This also clears a stale
+          # label when the title is edited to an unrecognized one (label stays empty).
           for current in $managed; do
             if [ "$current" != "$label" ]; then
               gh pr edit "$PR_NUMBER" --repo "$REPO" --remove-label "$current" >/dev/null 2>&1 || true
             fi
           done
+
+          if [ -z "$label" ]; then
+            echo "Title is not a recognized conventional commit: '$PR_TITLE'. Cleared managed labels."
+            exit 0
+          fi
+
+          # Create the label if missing, then apply it
+          gh label create "$label" --repo "$REPO" \
+            --color "${color[$label]}" \
+            --description "${description[$label]}" >/dev/null 2>&1 || true
 
           gh pr edit "$PR_NUMBER" --repo "$REPO" --add-label "$label"
