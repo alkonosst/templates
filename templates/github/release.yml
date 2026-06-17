@@ -11,12 +11,12 @@ changelog:
     - title: Breaking Changes
       labels: [breaking-change]
     - title: New Features
-      labels: [enhancement]
+      labels: [feat]
     - title: Bug Fixes
       labels: [fix]
     - title: Documentation
-      labels: [documentation]
+      labels: [docs]
     - title: Maintenance
-      labels: [chore, ci]
+      labels: [chore, ci, refactor]
     - title: Other Changes
       labels: ["*"]
