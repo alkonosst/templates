@@ -1,0 +1,32 @@
+name: PlatformIO Native Tests
+description: Run native tests for PlatformIO projects. Requires PlatformIO to be installed - run setup-pio first.
+
+inputs:
+  envs:
+    description: >
+      A list of environment names to test, separated by a space. If not provided, "native" will be used by default.
+    required: false
+    default: "native"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Check for PlatformIO installation
+      shell: bash
+      run: |
+        pio --version || { echo "PlatformIO is not installed. Please run setup-pio first."; exit 1; }
+
+    - name: Run native tests
+      shell: bash
+      env:
+        ENVS: ${{ inputs.envs }}
+      run: |
+        read -ra envs <<< "$ENVS"
+        if [  ${#envs[@]} -eq 0 ]; then
+          echo "No environments specified."; exit 1
+        fi
+        for env in "${envs[@]}"; do
+          echo "::group::Running tests for environment: $env"
+          pio test -e "$env"
+          echo "::endgroup::"
+        done
