@@ -1,0 +1,80 @@
+name: PR conventional label
+
+on:
+  workflow_call:
+
+permissions:
+  pull-requests: write
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Label PR from conventional commit title
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          pattern='^([a-zA-Z]+)(\([^)]+\))?(!)?:'
+          if [[ ! "$PR_TITLE" =~ $pattern ]]; then
+            echo "Title is not a conventional commit: '$PR_TITLE'. Skipping."
+            exit 0
+          fi
+
+          type="${BASH_REMATCH[1],,}"
+          breaking="${BASH_REMATCH[3]}"
+
+          if [ -n "$breaking" ]; then
+            label="breaking-change"
+          else
+            case "$type" in
+              feat)     label="feat" ;;
+              fix)      label="fix" ;;
+              docs)     label="docs" ;;
+              refactor) label="refactor" ;;
+              chore)    label="chore" ;;
+              ci)       label="ci" ;;
+              *)
+                echo "Type '$type' is not mapped to a label. Skipping."
+                exit 0
+                ;;
+            esac
+          fi
+
+          managed="breaking-change feat fix docs refactor chore ci"
+
+          # Label definitions; created on first use, existing labels are left untouched
+          declare -A color=(
+            ["breaking-change"]=b60205
+            ["feat"]=a2eeef
+            ["fix"]=0e8a16
+            ["docs"]=0075ca
+            ["refactor"]=1d76db
+            ["chore"]=5319e7
+            ["ci"]=006b75
+          )
+          declare -A description=(
+            ["breaking-change"]="Modifies the API or breaks backward compatibility for users."
+            ["feat"]="Adds new functionality without breaking the API."
+            ["fix"]="Fixes a bug but doesn't change the API."
+            ["docs"]="Documentation changes only."
+            ["refactor"]="Code change that neither fixes a bug nor adds a feature."
+            ["chore"]="Routine tasks that don't modify the API."
+            ["ci"]="CI/CD maintenance."
+          )
+
+          gh label create "$label" --repo "$REPO" \
+            --color "${color[$label]}" \
+            --description "${description[$label]}" >/dev/null 2>&1 || true
+
+          # Remove other managed labels so editing the title re-classifies the PR
+          for current in $managed; do
+            if [ "$current" != "$label" ]; then
+              gh pr edit "$PR_NUMBER" --repo "$REPO" --remove-label "$current" >/dev/null 2>&1 || true
+            fi
+          done
+
+          gh pr edit "$PR_NUMBER" --repo "$REPO" --add-label "$label"
