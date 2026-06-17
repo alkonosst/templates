@@ -29,17 +29,17 @@ jobs:
           if [[ "$PR_TITLE" =~ $pattern ]]; then
             type="${BASH_REMATCH[1],,}"
             breaking="${BASH_REMATCH[3]}"
-            if [ -n "$breaking" ]; then
+            case "$type" in
+              feat)     label="feat" ;;
+              fix)      label="fix" ;;
+              docs)     label="docs" ;;
+              refactor) label="refactor" ;;
+              chore)    label="chore" ;;
+              ci)       label="ci" ;;
+            esac
+            # A breaking marker ("!") only applies to a recognized type
+            if [ -n "$label" ] && [ -n "$breaking" ]; then
               label="breaking-change"
-            else
-              case "$type" in
-                feat)     label="feat" ;;
-                fix)      label="fix" ;;
-                docs)     label="docs" ;;
-                refactor) label="refactor" ;;
-                chore)    label="chore" ;;
-                ci)       label="ci" ;;
-              esac
             fi
           fi
 
