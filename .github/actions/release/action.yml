@@ -1,0 +1,62 @@
+name: Release
+description: >
+  Create a GitHub Release for the pushed tag with auto-generated notes and, optionally,
+  attached assets. Notes follow the same engine as the "Generate release notes" button,
+  so .github/release.yml in the consumer repo customizes their format.
+
+inputs:
+  files:
+    description: Newline or space separated list of asset paths/globs to attach. Empty attaches nothing.
+    required: false
+    default: ""
+  name:
+    description: Release title. Empty lets GitHub generate it from the tag.
+    required: false
+    default: ""
+  body-path:
+    description: Path to a file whose content is prepended to the auto-generated notes.
+    required: false
+    default: ""
+  generate-notes:
+    description: Auto-generate release notes (same as the "Generate release notes" button).
+    required: false
+    default: "true"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Create release
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        REPO: ${{ github.repository }}
+        TAG: ${{ github.ref_name }}
+        NAME: ${{ inputs.name }}
+        BODY_PATH: ${{ inputs.body-path }}
+        GENERATE_NOTES: ${{ inputs.generate-notes }}
+        FILES: ${{ inputs.files }}
+      run: |
+        args=(release create "$TAG" --repo "$REPO")
+
+        if [ "$GENERATE_NOTES" = "true" ]; then
+          args+=(--generate-notes)
+        fi
+        if [ -n "$NAME" ]; then
+          args+=(--title "$NAME")
+        fi
+        if [ -n "$BODY_PATH" ]; then
+          args+=(--notes-file "$BODY_PATH")
+        fi
+
+        # Collect assets, expanding any globs in the (optional) file list.
+        # nullglob drops non-matching patterns; globstar enables "**".
+        shopt -s globstar nullglob
+        assets=()
+        while IFS= read -r line; do
+          [ -z "$line" ] && continue
+          for match in $line; do
+            assets+=("$match")
+          done
+        done <<< "$FILES"
+
+        gh "${args[@]}" "${assets[@]}"
