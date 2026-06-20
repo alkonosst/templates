@@ -4,9 +4,10 @@ description: Run native tests for PlatformIO projects. Requires PlatformIO to be
 inputs:
   envs:
     description: >
-      A list of environment names to test, separated by a space. If not provided, "native" will be used by default.
+      A list of environment names to test, separated by a space. If not provided, "native-test" will
+      be used by default.
     required: false
-    default: "native"
+    default: "native-test"
 
 runs:
   using: "composite"
