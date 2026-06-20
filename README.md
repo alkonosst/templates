@@ -1,2 +1,3 @@
-# ci-templates
-Reusable GitHub Actions workflows and composite actions for my projects.
+# templates
+
+Reusable templates for CI workflows, build scripts, and other project files.
