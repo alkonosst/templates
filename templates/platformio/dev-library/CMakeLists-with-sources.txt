@@ -1,0 +1,15 @@
+cmake_minimum_required(VERSION 3.21)
+project(MyLib VERSION 1.0.0 LANGUAGES CXX)
+
+# Add sources to the library target.
+add_library(MyLib STATIC src/MyLib.cpp)
+
+# Alias with author prefix. Consumers link "alkonosst::MyLib".
+add_library(alkonosst::MyLib ALIAS MyLib)
+
+# PUBLIC (not INTERFACE): the include dir is needed by the library itself to compile its .cpp, AND
+# also by whoever uses it.
+target_include_directories(MyLib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
+# Set a C++ standard requirement for the library. This will also propagate to consumers of the library.
+target_compile_features(MyLib PUBLIC cxx_std_17)

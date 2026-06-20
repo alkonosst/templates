@@ -1,0 +1,17 @@
+{
+  "name": "MyLib",
+  "version": "0.1.0",
+  "authors": {
+    "name": "Maximiliano Ramirez",
+    "email": "maximiliano.ramirezbravo@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alkonosst/MyLib.git"
+  },
+  "description": "Description up to 255 characters",
+  "keywords": "keyword1, keyword2, keyword3 (up to 255 characters)",
+  "license": "MIT",
+  "frameworks": "*",
+  "headers": ["MyLib.h"]
+}

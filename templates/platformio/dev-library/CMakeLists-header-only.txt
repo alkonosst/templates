@@ -1,0 +1,14 @@
+cmake_minimum_required(VERSION 3.21)
+project(MyLib VERSION 1.0.0 LANGUAGES CXX)
+
+# Create an INTERFACE library.
+add_library(MyLib INTERFACE)
+
+# Alias with author prefix. Consumers link "alkonosst::MyLib".
+add_library(alkonosst::MyLib ALIAS MyLib)
+
+# Specify the include directories for the library.
+target_include_directories(MyLib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
+# Set a C++ standard requirement for the library. This will also propagate to consumers of the library.
+target_compile_features(MyLib INTERFACE cxx_std_17)
