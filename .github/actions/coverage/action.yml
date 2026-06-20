@@ -35,7 +35,7 @@ runs:
     - name: Check for Python installation
       shell: bash
       run: |
-        python --version || { echo "Python is not installed. Please run setup-python first."; exit 1; }
+        python --version || { echo "::error::Python is not installed. Please run setup-python first."; exit 1; }
 
     - name: Install gcovr
       shell: bash
@@ -54,7 +54,10 @@ runs:
         if [ -n "$FAIL_UNDER" ]; then
           args+=(--fail-under-line "$FAIL_UNDER")
         fi
-        gcovr "${args[@]}"
+        if ! gcovr "${args[@]}"; then
+          echo "::error::Coverage report generation failed, or line coverage is below the fail-under threshold."
+          exit 1
+        fi
 
     - name: Upload coverage to Codecov
       if: ${{ inputs.upload-codecov == 'true' }}

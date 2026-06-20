@@ -15,7 +15,7 @@ runs:
     - name: Check for PlatformIO installation
       shell: bash
       run: |
-        pio --version || { echo "PlatformIO is not installed. Please run setup-pio first."; exit 1; }
+        pio --version || { echo "::error::PlatformIO is not installed. Please run setup-pio first."; exit 1; }
 
     - name: Run native tests
       shell: bash
@@ -24,10 +24,14 @@ runs:
       run: |
         read -ra envs <<< "$ENVS"
         if [  ${#envs[@]} -eq 0 ]; then
-          echo "No environments specified."; exit 1
+          echo "::error::No environments specified."; exit 1
         fi
         for env in "${envs[@]}"; do
           echo "::group::Running tests for environment: $env"
-          pio test -e "$env"
+          if ! pio test -e "$env"; then
+            echo "::endgroup::"
+            echo "::error::Tests failed for environment: $env"
+            exit 1
+          fi
           echo "::endgroup::"
         done

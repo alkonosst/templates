@@ -37,4 +37,4 @@ runs:
     - name: Verify installation
       shell: bash
       run: |
-        pio --version
+        pio --version || { echo "::error::PlatformIO installation could not be verified."; exit 1; }

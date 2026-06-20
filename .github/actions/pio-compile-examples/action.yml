@@ -30,7 +30,7 @@ runs:
     - name: Check for PlatformIO installation
       shell: bash
       run: |
-        pio --version || { echo "PlatformIO is not installed. Please run setup-pio first."; exit 1; }
+        pio --version || { echo "::error::PlatformIO is not installed. Please run setup-pio first."; exit 1; }
 
     - name: Compile examples
       shell: bash

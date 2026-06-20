@@ -83,4 +83,7 @@ jobs:
             --color "${color[$label]}" \
             --description "${description[$label]}" >/dev/null 2>&1 || true
 
-          gh pr edit "$PR_NUMBER" --repo "$REPO" --add-label "$label"
+          if ! gh pr edit "$PR_NUMBER" --repo "$REPO" --add-label "$label"; then
+            echo "::error::Failed to apply the '$label' label to PR #$PR_NUMBER."
+            exit 1
+          fi

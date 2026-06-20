@@ -59,4 +59,7 @@ runs:
           done
         done <<< "$FILES"
 
-        gh "${args[@]}" "${assets[@]}"
+        if ! gh "${args[@]}" "${assets[@]}"; then
+          echo "::error::Failed to create the GitHub release for tag $TAG."
+          exit 1
+        fi
