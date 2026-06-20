@@ -1,0 +1,18 @@
+# Create a GitHub release when a new tag is pushed.
+# Only for tags that look like semantic versions (e.g. v1.2.3).
+name: Create release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create release
+        uses: alkonosst/templates/.github/actions/release@v1
