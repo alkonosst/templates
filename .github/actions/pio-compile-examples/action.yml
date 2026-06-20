@@ -1,0 +1,98 @@
+name: PlatformIO compile examples
+description: >
+  Compile every example under the examples/ directory with "pio run". Example folders are discovered
+  recursively (grouping/category subfolders are supported) and classified by content: a folder
+  containing a *.ino file is built as an Arduino example, otherwise (a folder with C/C++ sources) as a
+  Native example. Each example is compiled once per environment in the matching list, aborting on the
+  first failure. Requires PlatformIO to be installed - run setup-pio first.
+
+inputs:
+  examples-dir:
+    description: Root directory under which example folders are searched (recursively).
+    required: false
+    default: "examples"
+  arduino-envs:
+    description: >
+      Space-separated list of PlatformIO environments used to compile Arduino examples (folders with a
+      *.ino file). Each Arduino example is compiled once per environment. An empty list skips them.
+    required: false
+    default: "esp32-s3-example"
+  native-envs:
+    description: >
+      Space-separated list of PlatformIO environments used to compile Native examples (folders without
+      a *.ino file). Each Native example is compiled once per environment. An empty list skips them.
+    required: false
+    default: "native-example"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Check for PlatformIO installation
+      shell: bash
+      run: |
+        pio --version || { echo "PlatformIO is not installed. Please run setup-pio first."; exit 1; }
+
+    - name: Compile examples
+      shell: bash
+      env:
+        EXAMPLES_DIR: ${{ inputs.examples-dir }}
+        ARDUINO_ENVS: ${{ inputs.arduino-envs }}
+        NATIVE_ENVS: ${{ inputs.native-envs }}
+      run: |
+        # Discover example folders recursively by the source they directly contain. find's "%h" is the
+        # directory holding each matched file, so grouping/category folders (which hold only
+        # subfolders) are skipped automatically.
+        mapfile -t arduino_dirs < <(find "$EXAMPLES_DIR" -type f -name '*.ino' -printf '%h\n' | sort -u)
+        mapfile -t native_all < <(find "$EXAMPLES_DIR" -type f \
+          \( -name '*.cpp' -o -name '*.cc' -o -name '*.cxx' -o -name '*.c' \) -printf '%h\n' | sort -u)
+
+        # A folder with a *.ino is an Arduino example even if it also has C/C++ helper sources.
+        native_dirs=()
+        for dir in "${native_all[@]}"; do
+          is_arduino=false
+          for arduino_dir in "${arduino_dirs[@]}"; do
+            [ "$dir" = "$arduino_dir" ] && { is_arduino=true; break; }
+          done
+          if [ "$is_arduino" = false ]; then
+            native_dirs+=("$dir")
+          fi
+        done
+
+        if [ ${#arduino_dirs[@]} -eq 0 ] && [ ${#native_dirs[@]} -eq 0 ]; then
+          echo "No example folders found under '$EXAMPLES_DIR'. Nothing to compile."
+          exit 0
+        fi
+
+        read -ra arduino_envs <<< "$ARDUINO_ENVS"
+        read -ra native_envs <<< "$NATIVE_ENVS"
+
+        count=0
+
+        # EXAMPLE must be the example path relative to the project root (e.g. examples/Basic/Signal);
+        # the discovered paths already are, since the search root is EXAMPLES_DIR.
+        compile_example() {
+          local example="$1" env="$2" type="$3"
+          echo "::group::Compiling $type example: $example (env: $env)"
+          if ! EXAMPLE="$example" pio run -e "$env"; then
+            echo "::endgroup::"
+            echo "::error::Failed to compile $type example: $example (env: $env)"
+            exit 1
+          fi
+          echo "::endgroup::"
+          count=$((count + 1))
+        }
+
+        # An empty env list skips that example type (the loop body simply never runs).
+        for example in "${arduino_dirs[@]}"; do
+          for env in "${arduino_envs[@]}"; do
+            compile_example "$example" "$env" "Arduino"
+          done
+        done
+
+        for example in "${native_dirs[@]}"; do
+          for env in "${native_envs[@]}"; do
+            compile_example "$example" "$env" "Native"
+          done
+        done
+
+        echo "Successfully compiled $count example build(s)."
