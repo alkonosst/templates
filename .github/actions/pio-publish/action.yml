@@ -1,0 +1,37 @@
+name: PlatformIO publish
+description: >
+  Publish a package to the PlatformIO Registry with "pio pkg publish". Requires PlatformIO to be
+  installed - run setup-pio first.
+
+inputs:
+  auth-token:
+    description: >
+      PlatformIO Registry auth token. Generate it with "pio account token" and store it as a secret.
+    required: true
+  package:
+    description: Path to the package directory, tarball or zip to publish.
+    required: false
+    default: "."
+
+runs:
+  using: "composite"
+  steps:
+    - name: Check for PlatformIO installation
+      shell: bash
+      run: |
+        pio --version || { echo "::error::PlatformIO is not installed. Please run setup-pio first."; exit 1; }
+
+    - name: Publish package
+      shell: bash
+      env:
+        PLATFORMIO_AUTH_TOKEN: ${{ inputs.auth-token }}
+        PACKAGE: ${{ inputs.package }}
+      run: |
+        if [ -z "$PLATFORMIO_AUTH_TOKEN" ]; then
+          echo "::error::The auth-token input is empty. Provide a PlatformIO Registry token."
+          exit 1
+        fi
+        if ! pio pkg publish --no-interactive "$PACKAGE"; then
+          echo "::error::Failed to publish the package to the PlatformIO Registry."
+          exit 1
+        fi
