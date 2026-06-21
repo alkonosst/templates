@@ -11,9 +11,9 @@ inputs:
     required: false
     default: ""
   cache-pip:
-    description: Cache pip packages to speed up subsequent runs (requires "requirements.txt" in the repository).
+    description: Cache downloaded pip packages (~/.cache/pip) to speed up subsequent installs.
     required: false
-    default: "false"
+    default: "true"
 
 runs:
   using: "composite"
@@ -22,7 +22,15 @@ runs:
       uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
       with:
         python-version: ${{ inputs.python-version }}
-        cache: ${{ inputs.cache-pip == 'true' && 'pip' || '' }}
+
+    - name: Cache pip
+      if: ${{ inputs.cache-pip == 'true' }}
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      with:
+        path: ~/.cache/pip
+        key: pip-${{ runner.os }}-${{ inputs.python-version }}-${{ github.run_id }}
+        restore-keys: |
+          pip-${{ runner.os }}-${{ inputs.python-version }}-
 
     - name: Upgrade pip and install dependencies
       shell: bash
