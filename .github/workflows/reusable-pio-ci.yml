@@ -73,6 +73,8 @@ jobs:
           persist-credentials: false
       - uses: alkonosst/templates/.github/actions/setup-python@v1
       - uses: alkonosst/templates/.github/actions/setup-pio@v1
+        with:
+          cache-key-suffix: ${{ matrix.arduino-env }}
       - uses: alkonosst/templates/.github/actions/pio-compile-examples@v1
         with:
           arduino-envs: ${{ matrix.arduino-env }}
@@ -86,6 +88,8 @@ jobs:
           persist-credentials: false
       - uses: alkonosst/templates/.github/actions/setup-python@v1
       - uses: alkonosst/templates/.github/actions/setup-pio@v1
+        with:
+          cache-key-suffix: native
       - uses: alkonosst/templates/.github/actions/pio-compile-examples@v1
         with:
           arduino-envs: ""
@@ -99,6 +103,8 @@ jobs:
           persist-credentials: false
       - uses: alkonosst/templates/.github/actions/setup-python@v1
       - uses: alkonosst/templates/.github/actions/setup-pio@v1
+        with:
+          cache-key-suffix: native
       - uses: alkonosst/templates/.github/actions/pio-native-tests@v1
         with:
           envs: ${{ inputs.test-envs }}

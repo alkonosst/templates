@@ -10,6 +10,12 @@ inputs:
     description: Cache PlatformIO packages to speed up subsequent runs.
     required: false
     default: "true"
+  cache-key-suffix:
+    description: >
+      Token added to the cache key. Set a per-environment value (e.g. the board env) when parallel
+      jobs install different platforms, so their caches do not overwrite each other.
+    required: false
+    default: ""
 
 runs:
   using: "composite"
@@ -19,9 +25,9 @@ runs:
       uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
       with:
         path: ~/.platformio
-        key: platformio-${{ runner.os }}-${{ hashFiles('**/platformio.ini') }}
+        key: platformio-${{ runner.os }}-${{ inputs.cache-key-suffix }}-${{ hashFiles('**/platformio.ini') }}
         restore-keys: |
-          platformio-${{ runner.os }}-
+          platformio-${{ runner.os }}-${{ inputs.cache-key-suffix }}-
 
     - name: Install PlatformIO
       shell: bash
