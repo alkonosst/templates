@@ -11,12 +11,12 @@ on:
         description: Space-separated PlatformIO envs to compile Arduino examples (one matrix job per env).
         required: false
         type: string
-        default: "esp32-s3-example"
+        default: "esp32-s3-test"
       native-envs:
         description: Space-separated PlatformIO envs to compile Native examples.
         required: false
         type: string
-        default: "native-example"
+        default: "native-test"
       test-envs:
         description: >
           Space-separated PlatformIO envs to run native unit tests. Include the coverage env

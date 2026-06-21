@@ -1,6 +1,6 @@
 name: PlatformIO compile examples
 description: >
-  Compile every example under the examples/ directory with "pio run". Example folders are discovered
+  Compile every example under the examples/ directory with "pio ci". Example folders are discovered
   recursively (grouping/category subfolders are supported) and classified by content: a folder
   containing a *.ino file is built as an Arduino example, otherwise (a folder with C/C++ sources) as a
   Native example. Each example is compiled once per environment in the matching list, aborting on the
@@ -16,13 +16,21 @@ inputs:
       Space-separated list of PlatformIO environments used to compile Arduino examples (folders with a
       *.ino file). Each Arduino example is compiled once per environment. An empty list skips them.
     required: false
-    default: "esp32-s3-example"
+    default: "esp32-s3-test"
   native-envs:
     description: >
       Space-separated list of PlatformIO environments used to compile Native examples (folders without
       a *.ino file). Each Native example is compiled once per environment. An empty list skips them.
     required: false
-    default: "native-example"
+    default: "native-test"
+  lib-path:
+    description: Library location passed to "pio ci --lib" so examples can include the library.
+    required: false
+    default: "."
+  project-conf:
+    description: PlatformIO configuration file passed to "pio ci --project-conf".
+    required: false
+    default: "platformio.ini"
 
 runs:
   using: "composite"
@@ -38,6 +46,8 @@ runs:
         EXAMPLES_DIR: ${{ inputs.examples-dir }}
         ARDUINO_ENVS: ${{ inputs.arduino-envs }}
         NATIVE_ENVS: ${{ inputs.native-envs }}
+        LIB_PATH: ${{ inputs.lib-path }}
+        PROJECT_CONF: ${{ inputs.project-conf }}
       run: |
         # Discover example folders recursively by the source they directly contain. find's "%h" is the
         # directory holding each matched file, so grouping/category folders (which hold only
@@ -68,12 +78,12 @@ runs:
 
         count=0
 
-        # EXAMPLE must be the example path relative to the project root (e.g. examples/Basic/Signal);
-        # the discovered paths already are, since the search root is EXAMPLES_DIR.
+        # "pio ci" copies the example into a temporary project (so .ino sketches are compiled
+        # correctly), links the library from -l, and builds it with the -e environment from -c.
         compile_example() {
           local example="$1" env="$2" type="$3"
           echo "::group::Compiling $type example: $example (env: $env)"
-          if ! EXAMPLE="$example" pio run -e "$env"; then
+          if ! pio ci -l "$LIB_PATH" -c "$PROJECT_CONF" -e "$env" "$example"; then
             echo "::endgroup::"
             echo "::error::Failed to compile $type example: $example (env: $env)"
             exit 1
