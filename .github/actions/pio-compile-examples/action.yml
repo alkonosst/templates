@@ -77,6 +77,20 @@ runs:
         read -ra native_envs <<< "$NATIVE_ENVS"
 
         count=0
+        rows=()
+
+        write_summary() {
+          if [ ${#rows[@]} -eq 0 ]; then
+            return
+          fi
+          {
+            echo "### PlatformIO example compilation"
+            echo ""
+            echo "| Example | Type | Environment | Result |"
+            echo "| --- | --- | --- | --- |"
+            printf '%s\n' "${rows[@]}"
+          } >> "$GITHUB_STEP_SUMMARY"
+        }
 
         # "pio ci" copies the example into a temporary project (so .ino sketches are compiled
         # correctly), links the library from -l, and builds it with the -e environment from -c.
@@ -85,10 +99,13 @@ runs:
           echo "::group::Compiling $type example: $example (env: $env)"
           if ! pio ci -l "$LIB_PATH" -c "$PROJECT_CONF" -e "$env" "$example"; then
             echo "::endgroup::"
+            rows+=("| \`$example\` | $type | \`$env\` | FAILED |")
+            write_summary
             echo "::error::Failed to compile $type example: $example (env: $env)"
             exit 1
           fi
           echo "::endgroup::"
+          rows+=("| \`$example\` | $type | \`$env\` | OK |")
           count=$((count + 1))
         }
 
@@ -105,4 +122,5 @@ runs:
           done
         done
 
+        write_summary
         echo "Successfully compiled $count example build(s)."

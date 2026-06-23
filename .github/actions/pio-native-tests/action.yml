@@ -26,12 +26,29 @@ runs:
         if [  ${#envs[@]} -eq 0 ]; then
           echo "::error::No environments specified."; exit 1
         fi
+
+        rows=()
+        write_summary() {
+          {
+            echo "### Native tests"
+            echo ""
+            echo "| Environment | Result |"
+            echo "| --- | --- |"
+            printf '%s\n' "${rows[@]}"
+          } >> "$GITHUB_STEP_SUMMARY"
+        }
+
         for env in "${envs[@]}"; do
           echo "::group::Running tests for environment: $env"
           if ! pio test -e "$env"; then
             echo "::endgroup::"
+            rows+=("| \`$env\` | FAILED |")
+            write_summary
             echo "::error::Tests failed for environment: $env"
             exit 1
           fi
           echo "::endgroup::"
+          rows+=("| \`$env\` | passed |")
         done
+
+        write_summary

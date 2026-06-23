@@ -54,10 +54,29 @@ runs:
         if [ -n "$FAIL_UNDER" ]; then
           args+=(--fail-under-line "$FAIL_UNDER")
         fi
-        if ! gcovr "${args[@]}"; then
+
+        # Capture gcovr output so the coverage totals can be echoed to the run summary.
+        if ! summary="$(gcovr "${args[@]}" 2>&1)"; then
+          echo "$summary"
+          {
+            echo "### Coverage (failed)"
+            echo ""
+            echo '```'
+            echo "$summary" | grep -E '^(lines|functions|branches):' || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
           echo "::error::Coverage report generation failed, or line coverage is below the fail-under threshold."
           exit 1
         fi
+        echo "$summary"
+
+        {
+          echo "### Coverage"
+          echo ""
+          echo '```'
+          echo "$summary" | grep -E '^(lines|functions|branches):' || echo "$summary"
+          echo '```'
+        } >> "$GITHUB_STEP_SUMMARY"
 
     - name: Upload coverage to Codecov
       if: ${{ inputs.upload-codecov == 'true' }}
