@@ -16,6 +16,7 @@
 ## Checklist
 
 - [ ] The PR title follows Conventional Commits.
+- [ ] The code is formatted with clang-format 17.0.6.
 - [ ] Native unit tests pass (`pio test`).
 - [ ] Examples compile.
 - [ ] Documentation was updated if needed.

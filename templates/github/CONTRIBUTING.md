@@ -95,6 +95,30 @@ $env:EXAMPLE="examples/basic"; pio run -e native-example -t exec
 export EXAMPLE="examples/basic"; pio run -e native-example -t exec
 ```
 
+## Code formatting
+
+Code is formatted with [clang-format](https://clang.llvm.org/docs/ClangFormat.html) using the
+`.clang-format` file at the repo root. CI enforces this and **fails if any file is not formatted**, so
+format your changes before opening a PR.
+
+> [!IMPORTANT]
+> Use clang-format **17.0.6**, the exact version CI uses. Formatting output changes between major
+> versions, so a different version may produce a diff CI rejects (or flag code that is actually fine).
+
+The easiest way to match the version is the pinned pip package:
+
+```bash
+pip install clang-format==17.0.6
+```
+
+Format all sources in place:
+
+```bash
+clang-format -i $(git ls-files '*.c' '*.cc' '*.cpp' '*.cxx' '*.h' '*.hpp' '*.ino')
+```
+
+Alternatively, enable "format on save" in your editor pointed at clang-format 17.0.6.
+
 ## Commit and PR conventions
 
 This project uses [Conventional Commits](https://www.conventionalcommits.org/). The **PR title** is what matters: it is used to auto-label the PR and to generate the release notes.
@@ -136,5 +160,5 @@ refactor(api)!: rename begin() to start()
 
 1. Fork the repo and create a branch from `main`.
 2. Make your changes and keep them focused.
-3. Make sure tests pass and examples compile.
+3. Format the code with clang-format, make sure tests pass and examples compile.
 4. Open a PR with a Conventional Commit title and fill out the template.
