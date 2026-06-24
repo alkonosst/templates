@@ -15,23 +15,58 @@ libraries using PlatformIO.
 - `library.json` / `library.properties` - PlatformIO and Arduino Library Manager manifests.
 - `platformio.ini` - environments for examples, tests, sanitizers and coverage.
 
-## CI
+## .github
+
+### Workflows
 
 Copy and customize (if needed) the following workflows from
 [templates/github/workflows](https://github.com/alkonosst/templates/tree/main/templates/github/workflows):
 
-- [create-release.yml](https://github.com/alkonosst/templates/blob/main/templates/github/workflows/create-release.yml)
-  - creates a GitHub release and publishes the library to PlatformIO and Arduino Library Manager.
-- [pio-ci.yml](https://github.com/alkonosst/templates/blob/main/templates/github/workflows/pio-ci.yml)
-  - runs the tests, examples and coverage on GitHub Actions.
-- [pr-label.yml](https://github.com/alkonosst/templates/blob/main/templates/github/workflows/pr-label.yml)
-  - adds labels to PRs based on the title based on Conventional Commits.
+- [create-release.yml](https://github.com/alkonosst/templates/blob/main/templates/github/workflows/create-release.yml):
+  creates a GitHub release and publishes the library to PlatformIO and Arduino Library Manager.
+- [pio-ci.yml](https://github.com/alkonosst/templates/blob/main/templates/github/workflows/pio-ci.yml):
+  runs the tests, examples and coverage on GitHub Actions.
+- [pr-label.yml](https://github.com/alkonosst/templates/blob/main/templates/github/workflows/pr-label.yml):
+  adds labels to PRs based on the title based on Conventional Commits.
 
-> [!IMPORTANT] Create the following secrets in the GitHub repository for the release workflow to
-> work:
+> [!IMPORTANT]
+> Create the following secrets in the GitHub repository for the release workflow to work:
 >
 > - `CODECOV_TOKEN`: Codecov token for coverage upload.
 > - `PLATFORMIO_AUTH_TOKEN`: PlatformIO token for publishing the library (`pio account token`).
+
+### Issue/PR templates
+
+Copy and customize the following issue templates from
+[templates/github/ISSUE_TEMPLATE](https://github.com/alkonosst/templates/tree/main/templates/github/ISSUE_TEMPLATE):
+
+- [bug_report.md](https://github.com/alkonosst/templates/blob/main/templates/github/ISSUE_TEMPLATE/bug_report.md):
+  template for bug reports.
+- [feature_request.md](https://github.com/alkonosst/templates/blob/main/templates/github/ISSUE_TEMPLATE/feature_request.md):
+  template for feature requests.
+- [config.yml](https://github.com/alkonosst/templates/blob/main/templates/github/ISSUE_TEMPLATE/config.yml):
+  configuration for issue/PR templates.
+
+> [!IMPORTANT]
+> In `config.yml`, replace `<repository>` with the repository name before using.
+
+Copy and customize the
+[PULL_REQUEST_TEMPLATE.md](https://github.com/alkonosst/templates/blob/main/templates/github/PULL_REQUEST_TEMPLATE.md).
+
+### Health files
+
+Copy and customize the following health files from
+[templates/github/](https://github.com/alkonosst/templates/tree/main/templates/github/):
+
+- [CODE_OF_CONDUCT.md](https://github.com/alkonosst/templates/blob/main/templates/github/CODE_OF_CONDUCT.md)
+- [CONTRIBUTING.md](https://github.com/alkonosst/templates/blob/main/templates/github/CONTRIBUTING.md)
+- [FUNDING.yml](https://github.com/alkonosst/templates/blob/main/templates/github/FUNDING.yml)
+
+### Release notes
+
+Copy the
+[release.yml](https://github.com/alkonosst/templates/blob/main/templates/github/release.yml)
+configuration file.
 
 ## Repo settings
 
