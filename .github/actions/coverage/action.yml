@@ -85,3 +85,5 @@ runs:
         files: ${{ inputs.xml-output }}
         token: ${{ inputs.codecov-token }}
         fail_ci_if_error: false
+        disable_search: true
+        plugins: noop
