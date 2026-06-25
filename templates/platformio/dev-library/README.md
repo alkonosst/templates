@@ -22,8 +22,8 @@ libraries using PlatformIO.
 Copy and customize (if needed) the following workflows from
 [templates/github/workflows](https://github.com/alkonosst/templates/tree/main/templates/github/workflows):
 
-- [create-release.yml](https://github.com/alkonosst/templates/blob/main/templates/github/workflows/create-release.yml):
-  creates a GitHub release and publishes the library to PlatformIO and Arduino Library Manager.
+- [pio-create-release.yml](https://github.com/alkonosst/templates/blob/main/templates/github/workflows/pio-create-release.yml):
+  creates a GitHub release and publishes the library to PlatformIO.
 - [pio-ci.yml](https://github.com/alkonosst/templates/blob/main/templates/github/workflows/pio-ci.yml):
   runs the tests, examples and coverage on GitHub Actions.
 - [pr-label.yml](https://github.com/alkonosst/templates/blob/main/templates/github/workflows/pr-label.yml):

@@ -1,0 +1,60 @@
+# Reusable release flow for PlatformIO libraries. The caller triggers it on a pushed version tag and
+# this workflow:
+# 1. Verifies the CI on the branch is already green for the tagged commit (no CI re-run).
+# 2. Creates the GitHub release with auto-generated notes.
+# 3. Publishes the package to the PlatformIO Registry.
+name: PlatformIO release
+
+on:
+  workflow_call:
+    inputs:
+      ci-workflow:
+        description: CI workflow file name whose run must be green before releasing.
+        required: false
+        type: string
+        default: "pio-ci.yml"
+      branch:
+        description: Branch whose CI run must be green for the tagged commit.
+        required: false
+        type: string
+        default: "main"
+    secrets:
+      platformio-auth-token:
+        description: PlatformIO Registry auth token (pio account token).
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  # Gate: the tagged commit must have a green CI run on the branch (recorded status read with gh).
+  verify-ci:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+    steps:
+      - uses: alkonosst/templates/.github/actions/gh-verify-green-ci@v1
+        with:
+          workflow: ${{ inputs.ci-workflow }}
+          branch: ${{ inputs.branch }}
+
+  release:
+    needs: verify-ci
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: alkonosst/templates/.github/actions/gh-release@v1
+
+  publish:
+    needs: verify-ci
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: alkonosst/templates/.github/actions/setup-python@v1
+      - uses: alkonosst/templates/.github/actions/setup-pio@v1
+      - uses: alkonosst/templates/.github/actions/pio-publish@v1
+        with:
+          auth-token: ${{ secrets.platformio-auth-token }}

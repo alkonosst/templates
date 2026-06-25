@@ -1,4 +1,4 @@
-name: Release
+name: GitHub release
 description: >
   Create a GitHub Release for the pushed tag with auto-generated notes and, optionally,
   attached assets. Notes follow the same engine as the "Generate release notes" button,
