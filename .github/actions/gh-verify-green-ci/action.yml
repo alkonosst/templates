@@ -1,0 +1,60 @@
+name: GitHub verify green CI
+description: >
+  Fail unless the CI workflow already passed for a commit on a branch. Reads the recorded run status
+  with the GitHub CLI (gh); it does NOT re-run CI. Use it to gate a job to ensure CI is green before
+  proceeding. The calling job needs "actions: read" permission.
+
+inputs:
+  workflow:
+    description: CI workflow to check, as accepted by "gh run list --workflow" (file name, name or ID).
+    required: false
+    default: "pio-ci.yml"
+  branch:
+    description: Branch whose CI run must be green.
+    required: false
+    default: "main"
+  sha:
+    description: Commit SHA the CI run must correspond to. Defaults to the triggering commit.
+    required: false
+    default: ${{ github.sha }}
+  github-token:
+    description: Token gh uses to read workflow runs (needs actions read).
+    required: false
+    default: ${{ github.token }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Verify green CI run
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        GH_REPO: ${{ github.repository }}
+        WORKFLOW: ${{ inputs.workflow }}
+        BRANCH: ${{ inputs.branch }}
+        TARGET_SHA: ${{ inputs.sha }}
+      run: |
+        # Find the run of WORKFLOW on BRANCH for this exact commit. We only read the recorded status
+        # with gh (no CI re-run), so the commit must already have a completed, successful run.
+        run=$(gh run list --workflow "$WORKFLOW" --branch "$BRANCH" --limit 20 \
+          --json headSha,status,conclusion,url \
+          --jq 'map(select(.headSha == env.TARGET_SHA)) | .[0] // empty')
+
+        if [ -z "$run" ]; then
+          echo "::error::No '$WORKFLOW' run found on '$BRANCH' for commit $TARGET_SHA. Push to '$BRANCH' and let CI finish before tagging."
+          exit 1
+        fi
+
+        status=$(echo "$run" | jq -r .status)
+        conclusion=$(echo "$run" | jq -r .conclusion)
+        url=$(echo "$run" | jq -r .url)
+
+        if [ "$status" != "completed" ]; then
+          echo "::error::CI on '$BRANCH' for $TARGET_SHA has not finished yet (status: $status). $url"
+          exit 1
+        fi
+        if [ "$conclusion" != "success" ]; then
+          echo "::error::CI on '$BRANCH' for $TARGET_SHA is not green (conclusion: $conclusion). $url"
+          exit 1
+        fi
+        echo "CI on '$BRANCH' for $TARGET_SHA is green: $url"
