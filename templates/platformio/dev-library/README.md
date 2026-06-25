@@ -109,6 +109,21 @@ $env:EXAMPLE="examples/native-example"; pio run -e native-example -t exec
 export EXAMPLE="examples/arduino-example"; pio run -e esp32-s3-example -t upload -t monitor
 ```
 
+### Compiling all examples
+
+`scripts/compile-examples.py` mirrors the CI locally: it discovers every example folder under
+`examples/` (a folder with a `*.ino` is Arduino, the rest are native) and compiles each one with
+`pio ci`, once per environment you pass. It builds everything, prints a summary and exits non-zero
+if any build failed.
+
+```sh
+# Both types
+python scripts/compile-examples.py --arduino-envs esp32-s3-test --native-envs native-test
+
+# Only native
+python scripts/compile-examples.py --native-envs native-test
+```
+
 ### Coverage
 
 `scripts/coverage.py` creates a custom target that runs the tests and generates a coverage report to
